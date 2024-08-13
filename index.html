@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feyenoord Speurtocht</title>
+    <style>
+        /* Algemene body styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e8f4f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        #app {
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.visible {
+            display: block;
+        }
+
+        h1, h2 {
+            font-size: 2rem;
+            color: #b22222; /* Feyenoord rood */
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            margin-top: 20px;
+            cursor: pointer;
+            background-color: #b22222;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #a52a2a;
+        }
+
+        input[type="radio"],
+        input[type="text"],
+        input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.5);
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 1.2rem;
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 10px;
+        }
+
+        .options {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        label {
+            font-size: 1.2rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        #feedback {
+            margin-top: 20px;
+            color: red;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Start scherm -->
+        <div id="start-screen" class="screen visible">
+            <h1>Welkom bij de Feyenoord Speurtocht!</h1>
+            <button id="start-btn">Start de Speurtocht</button>
+        </div>
+
+        <!-- Quiz scherm -->
+        <div id="quiz-screen" class="screen">
+            <h2 id="question"></h2>
+            <div id="options" class="options"></div>
+            <input type="text" id="answer" placeholder="Jouw antwoord" style="display: none;">
+            <button id="submit-btn">Verzenden</button>
+            <p id="feedback"></p>
+        </div>
+
+        <!-- Eind scherm -->
+        <div id="end-screen" class="screen">
+            <h2>Gefeliciteerd!</h2>
+            <p id="final-message"></p>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript voor de quizlogica
+        document.addEventListener('DOMContentLoaded', function() {
+            const startBtn = document.getElementById('start-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            const questionElement = document.getElementById('question');
+            const optionsElement = document.getElementById('options');
+            const answerInput = document.getElementById('answer');
+            const feedbackElement = document.getElementById('feedback');
+            const finalMessageElement = document.getElementById('final-message');
+            const startScreen = document.getElementById('start-screen');
+            const quizScreen = document.getElementById('quiz-screen');
+            const endScreen = document.getElementById('end-screen');
+
+            const questions = [
+                {
+                    type: 'multiple-choice',
+                    question: "Wat is de bijnaam van Feyenoord?",
+                    options: ["De Trots van Rotterdam", "De Club van het Volk", "De Kralingers", "De Tricolores"],
+                    answer: "De Club van het Volk",
+                    hint: "Het verwijst naar de band met de supporters."
+                },
+                {
+                    type: 'open',
+                    question: "In welk stadion speelt Feyenoord zijn thuiswedstrijden?",
+                    answer: "De Kuip",
+                    hint: "Het stadion staat bekend om zijn unieke sfeer."
+                },
+                {
+                    type: 'true-false',
+                    question: "Feyenoord heeft meer kampioenschappen gewonnen dan Ajax.",
+                    options: ["Waar", "Niet Waar"],
+                    answer: "Niet Waar",
+                    hint: "Denk aan de erelijst van beide clubs."
+                },
+                {
+                    type: 'multiple-choice',
+                    question: "Welke kleur is prominent aanwezig in het Feyenoord tenue?",
+                    options: ["Blauw", "Groen", "Rood", "Geel"],
+                    answer: "Rood",
+                    hint: "Het is de kleur van passie en kracht."
+                },
+                {
+                    type: 'open',
+                    question: "Wie is Feyenoord's grootste rivaal?",
+                    answer: "Ajax",
+                    hint: "De wedstrijd tussen deze clubs wordt 'De Klassieker' genoemd."
+                }
+            ];
+
+            let currentQuestionIndex = 0;
+
+            function startQuiz() {
+                startScreen.classList.remove('visible');
+                quizScreen.classList.add('visible');
+                showQuestion();
+            }
+
+            function showQuestion() {
+                const currentQuestion = questions[currentQuestionIndex];
+                questionElement.innerText = currentQuestion.question;
+                feedbackElement.innerText = '';
+
+                if (currentQuestion.type === 'multiple-choice' || currentQuestion.type === 'true-false') {
+                    optionsElement.innerHTML = '';
+                    answerInput.style.display = 'none';
+                    currentQuestion.options.forEach(option => {
+                        const optionElement = document.createElement('div');
+                        optionElement.innerHTML = `
+                            <label>
+                                <input type="radio" name="option" value="${option}">
+                                ${option}
+                            </label>
+                        `;
+                        optionsElement.appendChild(optionElement);
+                    });
+                } else if (currentQuestion.type === 'open') {
+                    optionsElement.innerHTML = '';
+                    answerInput.style.display = 'block';
+                    answerInput.value = '';
+                }
+            }
+
+            function checkAnswer() {
+                const currentQuestion = questions[currentQuestionIndex];
+                let userAnswer;
+
+                if (currentQuestion.type === 'multiple-choice' || currentQuestion.type === 'true-false') {
+                    const selectedOption = document.querySelector('input[name="option"]:checked');
+                    if (selectedOption) {
+                        userAnswer = selectedOption.value;
+                    } else {
+                        feedbackElement.innerText = 'Kies een antwoord!';
+                        return;
+                    }
+                } else if (currentQuestion.type === 'open') {
+                    userAnswer = answerInput.value.trim().toLowerCase();
+                    if (!userAnswer) {
+                        feedbackElement.innerText = 'Vul een antwoord in!';
+                        return;
+                    }
+                }
+
+                if (userAnswer.toLowerCase() === currentQuestion.answer.toLowerCase()) {
+                    currentQuestionIndex++;
+                    if (currentQuestionIndex < questions.length) {
+                        showQuestion();
+                    } else {
+                        endQuiz();
+                    }
+                } else {
+                    feedbackElement.innerText = `Onjuist! Hint: ${currentQuestion.hint}`;
+                }
+            }
+
+            function endQuiz() {
+                quizScreen.classList.remove('visible');
+                endScreen.classList.add('visible');
+                finalMessageElement.innerText = "Je hebt de speurtocht voltooid! Gefeliciteerd!";
+            }
+
+            startBtn.addEventListener('click', startQuiz);
+            submitBtn.addEventListener('click', checkAnswer);
+        });
+    </script>
+</body>
+</html>
